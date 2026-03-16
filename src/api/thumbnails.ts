@@ -57,6 +57,12 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
     throw new BadRequestError("Missing Content-Type for thumbnail");
   }
 
+  if (mediaType !== "image/jpeg" && mediaType !== "image/png") {
+    throw new BadRequestError(
+      "Incorrect media type: only jpeg and png allowed",
+    );
+  }
+
   const fileData = await file.arrayBuffer();
   if (!fileData) {
     throw new Error("Error reading file data");
