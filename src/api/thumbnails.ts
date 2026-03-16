@@ -3,9 +3,8 @@ import { respondWithJSON } from "./json";
 import { getVideo, updateVideo } from "../db/videos";
 import type { ApiConfig } from "../config";
 import { file, type BunRequest } from "bun";
-import path from "node:path";
 import { BadRequestError, NotFoundError, UserForbiddenError } from "./errors";
-import { getAssetDiskPath, getAssetURL, mediaTypeToExt } from "./assets";
+import { getAssetDiskPath, getAssetPath, getAssetURL } from "./assets";
 
 type Thumbnail = {
   data: ArrayBuffer;
@@ -53,28 +52,18 @@ export async function handlerUploadThumbnail(cfg: ApiConfig, req: BunRequest) {
   }
 
   const mediaType = file.type;
-  if (!mediaType) {
-    throw new BadRequestError("Missing Content-Type for thumbnail");
-  }
-
   if (mediaType !== "image/jpeg" && mediaType !== "image/png") {
-    throw new BadRequestError(
-      "Incorrect media type: only jpeg and png allowed",
-    );
+    throw new BadRequestError("Invalid file type. Only JPEG and PNG allowed");
   }
 
   const fileData = await file.arrayBuffer();
-  if (!fileData) {
-    throw new Error("Error reading file data");
-  }
 
-  const ext = mediaTypeToExt(mediaType);
-  const fileName = `${videoId}${ext}`;
+  const assetPath = getAssetPath(mediaType);
+  const assetDiskPath = getAssetDiskPath(cfg, assetPath);
 
-  const assetDiskPath = getAssetDiskPath(cfg, fileName);
   await Bun.write(assetDiskPath, fileData);
 
-  const thumbnailURL = getAssetURL(cfg, fileName);
+  const thumbnailURL = getAssetURL(cfg, assetPath);
   video.thumbnailURL = thumbnailURL;
 
   updateVideo(cfg.db, video);
