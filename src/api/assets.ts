@@ -10,13 +10,18 @@ export function ensureAssetsDir(cfg: ApiConfig) {
 }
 
 export function mediaTypeToExt(mediaType: string) {
-  return mediaType.split("/")[1];
+  const parts = mediaType.split("/");
+  if (parts.length !== 2) {
+    return ".bin";
+  }
+
+  return "." + parts[1];
 }
 
-export function getAssetDiskPath(
-  cfg: ApiConfig,
-  videoId: string,
-  fileExtension: string,
-) {
-  return path.join(cfg.assetsRoot, `${videoId}.${fileExtension}`);
+export function getAssetDiskPath(cfg: ApiConfig, filePath: string) {
+  return path.join(cfg.assetsRoot, filePath);
+}
+
+export function getAssetURL(cfg: ApiConfig, assetPath: string) {
+  return `http://localhost:${cfg.port}/assets/${assetPath}`;
 }
